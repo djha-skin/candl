@@ -63,7 +63,7 @@ Language
 
 ## Motivation
 
-I recently a blog post by Drew DeVault making a [request for a new
+I a blog post by Drew DeVault making a [request for a new
 YAML](https://drewdevault.com/2021/07/28/The-next-YAML.html) and I
 thought I'd take a crack at it.
 
