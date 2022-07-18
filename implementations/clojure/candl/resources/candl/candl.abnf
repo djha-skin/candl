@@ -1,0 +1,246 @@
+; This ABNF is copyrighted 2022 Daniel Jay Haskin and contributors,
+; and is released under the terms of the Eclipse Public License 2.0,
+; along with the rest of the code of this clojure Project.
+; It is also made available under the 3-clause BSD license at your option;
+; See the CANDL README file.
+;
+; The work from which this ABNF is derived is [released by the IETF under
+; the terms of the BSD
+; license](https://trustee.ietf.org/wp-content/uploads/IETF-TLP-1.pdf)
+; (see section 4c of that document). The license for their code is
+; reproduced here:
+;
+;>Copyright (c) 2008, 2013 and 2017 IETF Trust and the persons
+;>identified as the document authors. All rights reserved.
+;>
+;>Redistribution and use in source and binary forms, with or without
+;>modification, are permitted provided That the following conditions are
+;>met:
+;>
+;>- Redistributions of source code must retain the above copyright
+;>  notice, this list of conditions and the following disclaimer.
+;>- Redistributions in binary form must reproduce the above copyright
+;>  notice, this list of conditions and the following disclaimer in the
+;>  documentation and/or other materials provided with the distribution.
+;>- Neither the name of Internet Society, IETF or IETF Trust, nor the
+;>  names of specific contributors, may be used to endorse or promote
+;>  products derived from this software without specific prior written
+;>  permission.
+;>
+;>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+;>"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+;>LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+;>A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+;>OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+;>SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+;>LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+;>DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+;>THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+;>(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+;>OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+;
+; The derivative work begins below and ends at the end of the file.
+
+CANDL-text = [ %xFEFF ]
+                      ; bom check
+             *( ws
+                *comment )
+             value
+             *( ws
+                *comment )
+
+value = [ constraint 1*blank ]
+        ( true
+        / false
+        / null
+        / number
+        / keyword
+        / string
+        / prose
+        / verbatim
+        / object
+        / array )
+
+; Constraints
+constraint = begin-constr
+             identifier
+begin-constr = %x3d    ; =
+
+; True
+true = %x74.72.75.65   ; true
+
+; False
+false = %x66.61.6C.73.65
+                       ; false
+
+; Null
+null = %x6E.75.6C.6C   ; null
+
+; Number section
+number = [ minus ]
+         int
+         [ frac ]
+         [ exp ]
+decimal-point = %x2E   ; .
+digit1-9 = %x31-39     ; 1-9
+e = %x65               ; e
+  / %x45               ; E
+exp = e
+      [ minus
+      / plus ]
+      1*DIGIT
+frac = decimal-point
+       1*DIGIT
+int = zero
+    / ( digit1-9
+        *DIGIT )
+minus = %x2D            ; -
+plus = %x2B             ; +
+zero = %x30             ; 0
+; DIGIT equivalent to DIGIT rule
+; in [RFC5234]
+DIGIT = %x30-39         ; 0-9
+
+; Keyword section
+keyword = begin-keyword
+          identifier
+begin-keyword = %x2A    ; *
+
+; String section
+string = quotation-mark
+         *char
+         quotation-mark
+char = unescaped
+     / escape
+     / ( %x22           ; ":U+0022
+       / %x5C           ; \:U+005C
+       / %x2F           ; /:U+002F
+       / %x62           ; b:U+0008
+       / %x66           ; f:U+000C
+       / %x6E           ; n:U+000A
+       / %x72           ; r:U+000D
+       / %x74           ; t:U+0009
+       / %x75 4HEXDIG ) ; uXXXX:
+                        ;   U+XXXX
+escape = %x5C           ; \
+quotation-mark = %x22   ; "
+unescaped = %x20-21     ; all
+          / %x23-5B     ; except
+          / %x5D-10FFFF ; " and \
+; HEXDIG equivalent to HEXDIG rule
+; in [RFC5234]
+HEXDIG = DIGIT          ; 0-9
+       / %x41-46        ; A-F
+       / %x61-66        ; a-f
+
+; Prose section
+prose = begin-prose
+        1*prose-line
+        blank-line
+begin-prose = prose-mark
+              ignore
+              line-delimiter
+ignore = *blank
+         *( comment
+            *blank )
+
+prose-mark = %x3E      ; >
+prose-line = ignore
+             prose-mark
+             line-content
+             line-delimiter
+blank-line = ignore
+             line-delimiter
+
+; Verbatim section
+verbatim = begin-verbatim
+           1*verbatim-line
+           blank-line
+begin-verbatim = verbatim-mark
+                 ignore
+                 line-delimiter
+verbatim-mark = %x7C   ; |
+verbatim-line = ignore
+                verbatim-mark
+                line-content
+                line-delimiter
+
+; Objects
+object = begin-object
+         [ [ value-sep ]
+           member
+           *( value-sep
+              member )
+           [ value-sep ] ]
+         end-object
+begin-object = %x7B ws ; {
+val-delim = ws
+          / %x2C       ; ,
+value-sep = 1*( val-delim
+                *comment )
+member = key
+         name-sep
+         value
+key = symbol
+    / string
+symbol = identifier
+name-delim = ws
+           / %x3A      ; :
+name-sep = 1*( name-delim
+               *comment )
+end-object = %x7D      ; }
+
+; Arrays
+array = begin-array
+        [ [ value-sep ]
+          value
+          *( value-sep
+             value )
+          [ value-sep ] ]
+        end-array
+begin-array = %x5B     ; [
+end-array = %x5D       ; ]
+
+; Identifiers section
+identifier = name
+           / ( name
+               id-name-delim
+               name )
+name = sub-id
+       *( sub-id-delim
+          sub-id )
+sub-id = begin-id
+         *middle-id
+begin-id = %x5F        ; _
+         / %x41-5A     ; A-Z
+         / %x61-7A     ; a-z
+         / %x80-10FFF  ; non-ASCII
+middle-id = %x5F       ; _
+          / %x21       ; !
+          / %x3F       ; ?
+          / %x30-39    ; 0-9
+          / %x41-5A    ; A-Z
+          / %x61-7A    ; a-z
+          / %x80-10FFF ; non-ASCII
+sub-id-delim = %x2D    ; -
+             / %x2E    ; .
+id-name-delim = %x2F   ; /
+
+; Rules shared between different
+; sections
+blank = %x20           ; Space
+      / %x09           ; \t
+ws = blank
+   / line-delimiter
+line-delimiter = %x0D %x0A
+                       ; \r\n
+               / %x0A  ; \n
+               / %x0D  ; \r
+comment = comment-start
+          line-content
+          line-delimiter
+comment-start = %x23   ; #
+line-content = %x09    ; all
+             / %x20-5B ; but
+             / %x5D-10FFF
+                       ; \r and \n

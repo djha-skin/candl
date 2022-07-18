@@ -1,0 +1,23 @@
+{
+ :paths ["src"
+         "resources"]
+ :deps {
+        instaparse/instaparse {:mvn/version "1.4.12"}
+        }
+  ;;:aliases
+  ;;{
+  ;; Use different aliases with `clj -A:dev` or `clj -A:test`
+  ;;:dev {
+  ;;      :extra-paths {
+  ;;                    }
+  ;;       :extra-deps {
+  ;;                    }
+  ;;      }
+  ;;:test {
+  ;;       :extra-paths {
+  ;;                     }
+  ;;       :extra-deps {
+  ;;                    }
+  ;;      }
+  ;;}
+ }

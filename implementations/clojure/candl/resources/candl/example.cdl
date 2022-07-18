@@ -1,0 +1,55 @@
+# The data in this document is fictitious.
+# Note that for schema validation puroses, a single constraint at the
+# top level is often more than sufficient. I don't put constraints on
+# every single thing in this document.
+=person {
+    name "Daniel"
+    age 42
+    will >
+      >This is my last will and
+      # Well hopefully not my LAST will
+      >testament.
+
+    poem | # Go easy, I wrote this when I was younger.
+      |So I went down to the codes one day
+      |To the lonely C and the Py;
+      |And all I ask is a terminal
+      |And a browser to sail 'er by.
+      |
+      # I love that poem, I write it everywhere. I don't care
+      # if you think it's silly.
+
+    # Keywords are an interesting way to represent enums.
+    eyes *eye-color/brown # a fairly common color for eyes.
+    height 194.6
+    # Oops, wonder why someone thought I was so young
+    #born =rfc3339 "2006-01-07T04:13:00.0000-0700"
+    born =rfc3339 "1986-01-07T04:13:00.0000-0700" # That's better.
+
+    kids [
+        # These are also person objects but the reader knows this
+        # already due to the top `=person` constraint. So they need not
+        # be constrained here.
+        { name "Bobby" }
+        { name "Jill" }
+    ]
+    pets [
+        # pets can be dogs or cats.
+        # polymorphism in schema suggests constraints could help here.
+        =dog {
+          name "Rover"
+          breed "Goldendoodle"
+          "7up" "heads-up"
+        }
+        =cat {
+          name "Kibble"
+          pelt "tabby"
+        }
+    ]
+    sanity null
+    happy true
+    dead false
+    # Well, then.
+} # That's it, I guess.
+# Wait -- really?
+# Yeah, that's it.

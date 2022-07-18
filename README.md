@@ -20,20 +20,24 @@ Language
     age 42
     will >
       >This is my last will and
+      # Well hopefully not my LAST will
       >testament.
 
-    poem |
+    poem | # Go easy, I wrote this when I was younger.
       |So I went down to the codes one day
       |To the lonely C and the Py;
       |And all I ask is a terminal
       |And a browser to sail 'er by.
       |
+      # I love that poem, I write it everywhere. I don't care
+      # if you think it's silly.
 
     # Keywords are an interesting way to represent enums.
-    eyes *eye-color/brown
+    eyes *eye-color/brown # a fairly common color for eyes.
     height 194.6
-    # Best not reveal my age, commented out
-    #born =rfc3339 "1986-01-07T04:13:00.0000-07:00"
+    # Oops, wonder why someone thought I was so young
+    #born =rfc3339 "2006-01-07T04:13:00.0000-0700"
+    born =rfc3339 "1986-01-07T04:13:00.0000-0700" # That's better.
 
     kids [
         # These are also person objects but the reader knows this
@@ -48,17 +52,20 @@ Language
         =dog {
           name "Rover"
           breed "Goldendoodle"
+          "7up" "heads-up"
         }
         =cat {
           name "Kibble"
           pelt "tabby"
         }
-
     ]
     sanity null
     happy true
     dead false
-}
+    # Well, then.
+} # That's it, I guess.
+# Wait -- really?
+# Yeah, that's it.
 ```
 
 ## Motivation
@@ -137,13 +144,23 @@ Constraints were partially a inspired by EDN's tags (like `#inst`.)
 I'm going to keep it mostly informal here, but also do often get into
 the nitty gritty.
 
+### File ending
+
+CANDL documents written as files should have a document ending of `cndl`,
+as in `config.cndl` .
+
+### MIME type
+
+I'd propose the MIME type of `text/candl` if this ever got big enough,
+or maybe `text/x-candl` if it didn't.
+
 ### Unicode Ready
 
 Documents are encouraged to be encoded in UTF-8. To support machine to
 machine better, this is not required. However, the entire document is
 defined to be a Unicode string, with no unprintable characters in it. As
 ASCII characters are often used in the spec, an encoding that supports
-them is a must. Encodings that come to mind are UTF-7, UTF-8, UTF-16,
+them is a must. Encodings that come to mind are UTF-8, UTF-7, UTF-16,
 Windows UTF-16, UTF-32, ISO-8859-1 and ASCII itself.
 
 The grammar explicitly contains provision for encountering a byte order
@@ -547,7 +564,8 @@ The code in question which is derived from the IETF's work begins after
 this paragraph and ends at the end of this document.
 
 ```
-CANDL-text = *1%xFEFF  ; bom check
+CANDL-text = [ %xFEFF ]
+                      ; bom check
              *( ws
                 *comment )
              value
@@ -634,7 +652,7 @@ unescaped = %x20-21     ; all
           / %x5D-10FFFF ; " and \
 ; HEXDIG equivalent to HEXDIG rule
 ; in [RFC5234]
-HEXDIG = DIGIT.         ; 0-9
+HEXDIG = DIGIT          ; 0-9
        / %x41-46        ; A-F
        / %x61-66        ; a-f
 
@@ -645,9 +663,9 @@ prose = begin-prose
 begin-prose = prose-mark
               ignore
               line-delimiter
-ignore = blankspace
+ignore = *blank
          *( comment
-            blankspace )
+            *blank )
 
 prose-mark = %x3E      ; >
 prose-line = ignore
@@ -690,7 +708,7 @@ key = symbol
     / string
 symbol = identifier
 name-delim = ws
-           / %x3A )    ; :
+           / %x3A      ; :
 name-sep = 1*( name-delim
                *comment )
 end-object = %x7D      ; }
@@ -717,19 +735,19 @@ name = sub-id
 sub-id = begin-id
          *middle-id
 begin-id = %x5F        ; _
-         / %x41-%5A    ; A-Z
-         / %x61-%7A    ; a-z
-         / %80-%10FFF  ; non-ASCII
+         / %x41-5A     ; A-Z
+         / %x61-7A     ; a-z
+         / %x80-10FFF  ; non-ASCII
 middle-id = %x5F       ; _
           / %x21       ; !
           / %x3F       ; ?
-          / %30-%39    ; 0-9
-          / %x41-%5A   ; A-Z
-          / %x61-%7A   ; a-z
-          / %80-%10FFF ; non-ASCII
+          / %x30-39    ; 0-9
+          / %x41-5A    ; A-Z
+          / %x61-7A    ; a-z
+          / %x80-10FFF ; non-ASCII
 sub-id-delim = %x2D    ; -
              / %x2E    ; .
-id-name-delim = %x2F.  ; /
+id-name-delim = %x2F   ; /
 
 ; Rules shared between different
 ; sections
@@ -740,7 +758,7 @@ ws = blank
 line-delimiter = %x0D %x0A
                        ; \r\n
                / %x0A  ; \n
-               / %0D.  ; \r
+               / %x0D  ; \r
 comment = comment-start
           line-content
           line-delimiter
