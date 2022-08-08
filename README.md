@@ -182,22 +182,13 @@ whole document.
 A new token is here introduced which will be used further on in the
 document: identifiers.
 
-A CANDL identifier either a simple name or a surname and name, in that
-order, separated by a forward slash (`/`). If the identifier is a
-surname/name pair, it is said to be a "fully qualified identifier".
-
-A name is one or more sub-identifiers separated by dashes (`-`) or dots
-(the ASCII period `.`)
-
-A sub-identifier is a sequence of Unicode code points. The first code
-point is an alphabetical ASCII character, an underscore, or any other
-non-ASCII character. Subsequent code points can include ASCII
-alphabetical characters, ASCII numerical characters, underscores, the
-question mark (`?`), the exclamation mark (`!`), or any other non-ASCII
-Unicode code point.
+A CANDL identifier starts with alphabetic characters, the underscore, the exclamation mark, or the question mark.
+Any other characters in the identifier, if any, may include those characters in addition to the numeric characters, the period, the forward slash, and the dash.
 
 For JSON compatibility and to dispel confusion, identifiers are not and
 can't be the strings `null`, `true`, or `false`.
+
+Identifiers by themselves form a bare-word syntax for normal strings.
 
 ### Character Class: whitespace and blankspace
 
@@ -325,38 +316,6 @@ Here is an example:
 }
 ```
 
-### Symbols and Keywords
-
-CANDL introduces two new primitive types in addition to the basic JSON
-types. Symbols are [interned
-strings](https://en.m.wikipedia.org/wiki/String_interning) that refer to
-something. Keywords are symbols that [refer to
-themselves](https://github.com/edn-format/edn/blob/master/README.md#keywords).
-They're an interesting way to represent e.g. C enum values, for example.
-If the backing parser isn't interested in symbols or keywords they can
-just treat them as strings and/or enums.
-
-`symbol`
-
-Symbols are simply bare word CANDL identifiers that can't be `true`,
-`null` or `false`.
-
-`*keyword`
-
-Keywords are identifiers with a prepended asterisk (`*`).
-
-Symbols may be used instead of strings in keys of objects, but not as
-values.
-
-Keywords may be used as values but not as keys in objects.
-
-If the parser's host language does not have a notion of a keyword, they
-should interpret them as an enum option. They may throw an error if the
-enum type in question has not been pre-registered with the parser and so
-is unknown to it. Symbols must be interpreted as a string when used as
-keys in an object if the language has no notion of a symbol. They may be
-interpreted as either a symbol or keyword if the language supports it.
-
 ### Arrays
 
 Arrays start with a `[` and end with a `]`. The delimiter for lists is a
@@ -429,7 +388,7 @@ There are a set of built-in constraints defined.
 - `=url` means the following string must be a valid URL.
 
 Other constraints can be predefined and pre-registered with the parser.
-User-defined constraints must be fully qualified. These constraints
+User-defined constraints must contain at least one forward slash. These constraints
 would be published as part of the API of the reading program. Known
 constraints should always be enforced. The constraints in this document
 should be enforced. Other, pre-registered constraints known to the
@@ -446,7 +405,6 @@ They are presented as a way to solve the schema problem without getting
 in the way of untyped languages such as Python that don't necessarily
 need this. They should probably be used sparingly but are present if
 needed.
-
 
 ## Observations
 
@@ -466,11 +424,7 @@ needed.
   with that information. This allows schemas to be checked without
   sacrificing interoperability.
 
-- Bareword keys is something I wanted to support. Using symbols, it's
-  there.
-
-- Doesn't support all possible EDN documents, but lots of them. Also
-  makes choices that allow for much better interoperability.
+- Bare words supported to some extent.
 
 - It still manages to be a superset of JSON. DeVault didn't need this
   but I think it's pretty cool.
@@ -577,10 +531,7 @@ value = [ constraint 1*blank ]
         / false
         / null
         / number
-        / keyword
         / string
-        / prose
-        / verbatim
         / object
         / array )
 
@@ -624,13 +575,8 @@ zero = %x30             ; 0
 ; in [RFC5234]
 DIGIT = %x30-39         ; 0-9
 
-; Keyword section
-keyword = begin-keyword
-          identifier
-begin-keyword = %x2A    ; *
-
 ; String section
-string = quotation-mark
+quoted = quotation-mark
          *char
          quotation-mark
 char = unescaped
@@ -643,8 +589,9 @@ char = unescaped
        / %x6E           ; n:U+000A
        / %x72           ; r:U+000D
        / %x74           ; t:U+0009
-       / %x75 4HEXDIG ) ; uXXXX:
+       / %x75 4HEXDIG   ; uXXXX:
                         ;   U+XXXX
+       / %x55 6HEXDIG   ; UXXXXXX
 escape = %x5C           ; \
 quotation-mark = %x22   ; "
 unescaped = %x20-21     ; all
@@ -687,7 +634,11 @@ verbatim-line = ignore
                 verbatim-mark
                 line-content
                 line-delimiter
-
+string = identifier
+       / quoted
+       / prose
+       / verbatim
+       
 ; Objects
 object = begin-object
          [ [ value-sep ]
@@ -725,29 +676,23 @@ begin-array = %x5B     ; [
 end-array = %x5D       ; ]
 
 ; Identifiers section
-identifier = name
-           / ( name
-               id-name-delim
-               name )
-name = sub-id
-       *( sub-id-delim
-          sub-id )
-sub-id = begin-id
-         *middle-id
+identifier = begin-id *middle-id
 begin-id = %x5F        ; _
+         / %x21        ; !
+         / %x3F        ; ?
          / %x41-5A     ; A-Z
          / %x61-7A     ; a-z
          / %x80-10FFF  ; non-ASCII
 middle-id = %x5F       ; _
-          / %x21       ; !
-          / %x3F       ; ?
           / %x30-39    ; 0-9
           / %x41-5A    ; A-Z
           / %x61-7A    ; a-z
+          / %x21       ; !
+          / %x3F       ; ?
+          / %x2D       ; -
+          / %x2E       ; .
+          / %x2F       ; /
           / %x80-10FFF ; non-ASCII
-sub-id-delim = %x2D    ; -
-             / %x2E    ; .
-id-name-delim = %x2F   ; /
 
 ; Rules shared between different
 ; sections
