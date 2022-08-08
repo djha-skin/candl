@@ -32,7 +32,6 @@ Language
       # I love that poem, I write it everywhere. I don't care
       # if you think it's silly.
 
-    # Keywords are an interesting way to represent enums.
     eyes "brown" # a fairly common color for eyes.
     height 194.6
     # Oops, wonder why someone thought I was so young
