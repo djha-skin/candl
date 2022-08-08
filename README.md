@@ -33,7 +33,7 @@ Language
       # if you think it's silly.
 
     # Keywords are an interesting way to represent enums.
-    eyes *eye-color/brown # a fairly common color for eyes.
+    eyes "brown" # a fairly common color for eyes.
     height 194.6
     # Oops, wonder why someone thought I was so young
     #born =rfc3339 "2006-01-07T04:13:00.0000-0700"
