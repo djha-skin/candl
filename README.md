@@ -226,9 +226,13 @@ characters and block mark together are called the block quote's
 *prefix*. This prefix is discarded for each line when building the
 resultant string.
 
-A block quote ends when an empty line is encountered. This empty line,
-its line delimiter, and the line delimiter of the previous line is
-discarded when building the resultant string.
+A block quote ends when a line is encountered which does not begin
+with arbitrary white space followed by a block mark. This line is not
+consumed and parsing for the next token begins at the first character
+that was not a blockmark character or blankspace. The blank space
+characters on the line found not to contain the block mark together with
+the new line character on the previous line are discarded when building
+the resultant string.
 
 Prose block quotes have the further constraint that any substring found
 in the resultant string consisting of all whitespace characters that lie
@@ -242,7 +246,6 @@ This results in the empty string:
 ```
 |
 |
-
 ```
 
 This returns `" hello, how are you?  "`:
@@ -251,7 +254,6 @@ This returns `" hello, how are you?  "`:
 >
 > hello, how are
 >     you?
-
 ```
 
 This returns `"hello, it's me"`
@@ -259,7 +261,6 @@ This returns `"hello, it's me"`
 ```
   >
   >hello, it's me
-
 ```
 
 This example shows how to ensure the block quote encodes an ending line
@@ -346,7 +347,7 @@ constraint and the value it takes as its argument, with no comments or
 line delimiters in between the constraints and the value that it
 constrains. The constraint comes first. At most one constraint is
 allowed per value. Identifiers that are not fully qualified are
-reserved, and so must either refer to a built-in constraints or cause an
+reserved, and so must either refer to built-in constraints or cause an
 error.
 
 Example:
